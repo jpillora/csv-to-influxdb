@@ -140,6 +140,8 @@ func main() {
 	bpSize := 0
 	totalSize := 0
 
+	// lastCount := ""
+
 	//write the current batch
 	write := func() {
 		if bpSize == 0 {
@@ -155,14 +157,15 @@ func main() {
 			}
 			break
 		}
-
-		resp, err := c.Query(client.Query{Command: "SELECT count(" + firstField + ") FROM " + conf.Measurement, Database: conf.Database})
-		if err != nil {
-			log.Fatal("failed to count rows")
-		}
-		count := resp.Results[0].Series[0].Values[0][1]
-		log.Printf("count: %s", count)
-
+		//TODO(jpillora): wait until the new points become readable
+		// count := ""
+		// for count == lastCount {
+		// 	resp, err := c.Query(client.Query{Command: "SELECT count(" + firstField + ") FROM " + conf.Measurement, Database: conf.Database})
+		// 	if err != nil {
+		// 		log.Fatal("failed to count rows")
+		// 	}
+		// 	count = resp.Results[0].Series[0].Values[0][1].(string)
+		// }
 		//reset
 		bp, _ = client.NewBatchPoints(bpConfig)
 		bpSize = 0
