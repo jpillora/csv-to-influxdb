@@ -196,11 +196,15 @@ func main() {
 		//move all into tags and fields
 		for hi, h := range headers {
 			r := records[hi]
+			if len(r) == 0 {
+				continue
+			}
 			//tags are just strings
 			if tagNames[h] {
 				tags[h] = r
 				continue
 			}
+
 			//fields require string parsing
 			if timestampRe.MatchString(r) {
 				t, err := time.Parse(conf.TimestampFormat, r)
