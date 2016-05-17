@@ -62,7 +62,8 @@ func main() {
 	//regular expressions
 	numbersRe := regexp.MustCompile(`\d`)
 	integerRe := regexp.MustCompile(`^\d+$`)
-	floatRe := regexp.MustCompile(`^\d+\.\d+$`)
+//	floatRe := regexp.MustCompile(`^\d+\.\d+$`)
+	floatRe := regexp.MustCompile(`^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$`)
 	trueRe := regexp.MustCompile(`^(true|T|True|TRUE)$`)
 	falseRe := regexp.MustCompile(`^(false|F|False|FALSE)$`)
 	timestampRe, err := regexp.Compile("^" + numbersRe.ReplaceAllString(conf.TimestampFormat, `\d`) + "$")
