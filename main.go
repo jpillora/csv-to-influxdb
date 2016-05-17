@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/url"
+//	"net/url"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/influxdb/influxdb/client/v2"
+	"github.com/influxdata/influxdb/client/v2"
 	"github.com/jpillora/backoff"
 	"github.com/jpillora/opts"
 )
@@ -71,11 +71,11 @@ func main() {
 	}
 
 	//influxdb client
-	u, err := url.Parse(conf.Server)
-	if err != nil {
-		log.Fatalf("Invalid server address: %s", err)
-	}
-	c := client.NewClient(client.Config{URL: u})
+	//u, err := url.Parse(conf.Server)
+	//if err != nil {
+	//	log.Fatalf("Invalid server address: %s", err)
+	//}
+	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server})
 
 	dbsResp, err := c.Query(client.Query{Command: "SHOW DATABASES"})
 	if err != nil {
@@ -227,7 +227,9 @@ func main() {
 			}
 		}
 
-		bp.AddPoint(client.NewPoint(conf.Measurement, tags, fields, ts))
+		p, err := client.NewPoint(conf.Measurement, tags, fields, ts)
+
+		bp.AddPoint(p)
 		bpSize++
 		totalSize++
 		if bpSize == conf.BatchSize {
