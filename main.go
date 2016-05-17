@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/url"
+//	"net/url"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/influxdb/influxdb/client/v2"
+	"github.com/influxdata/influxdb/client/v2"
 	"github.com/jpillora/backoff"
 	"github.com/jpillora/opts"
 )
@@ -62,7 +62,8 @@ func main() {
 	//regular expressions
 	numbersRe := regexp.MustCompile(`\d`)
 	integerRe := regexp.MustCompile(`^\d+$`)
-	floatRe := regexp.MustCompile(`^\d+\.\d+$`)
+//	floatRe := regexp.MustCompile(`^\d+\.\d+$`)
+	floatRe := regexp.MustCompile(`^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$`)
 	trueRe := regexp.MustCompile(`^(true|T|True|TRUE)$`)
 	falseRe := regexp.MustCompile(`^(false|F|False|FALSE)$`)
 	timestampRe, err := regexp.Compile("^" + numbersRe.ReplaceAllString(conf.TimestampFormat, `\d`) + "$")
@@ -71,11 +72,11 @@ func main() {
 	}
 
 	//influxdb client
-	u, err := url.Parse(conf.Server)
-	if err != nil {
-		log.Fatalf("Invalid server address: %s", err)
-	}
-	c := client.NewClient(client.Config{URL: u})
+	//u, err := url.Parse(conf.Server)
+	//if err != nil {
+	//	log.Fatalf("Invalid server address: %s", err)
+	//}
+	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server})
 
 	dbsResp, err := c.Query(client.Query{Command: "SHOW DATABASES"})
 	if err != nil {
@@ -195,11 +196,15 @@ func main() {
 		//move all into tags and fields
 		for hi, h := range headers {
 			r := records[hi]
+			if len(r) == 0 {
+				continue
+			}
 			//tags are just strings
 			if tagNames[h] {
 				tags[h] = r
 				continue
 			}
+
 			//fields require string parsing
 			if timestampRe.MatchString(r) {
 				t, err := time.Parse(conf.TimestampFormat, r)
@@ -227,7 +232,9 @@ func main() {
 			}
 		}
 
-		bp.AddPoint(client.NewPoint(conf.Measurement, tags, fields, ts))
+		p, err := client.NewPoint(conf.Measurement, tags, fields, ts)
+
+		bp.AddPoint(p)
 		bpSize++
 		totalSize++
 		if bpSize == conf.BatchSize {
