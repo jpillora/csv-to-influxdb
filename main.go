@@ -84,7 +84,7 @@ func main() {
 	
 	dbsResp, err := c.Query(client.Query{Command: "SHOW DATABASES"})
 	if err != nil {
-        log.Fatalf("Invalid server address: %s", err)
+		log.Fatalf("Invalid server address: %s", err)
 	}
 
 	dbExists := false
