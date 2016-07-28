@@ -23,6 +23,8 @@ type config struct {
 	CSVFile         string `type:"arg" help:"<csv-file> must be a path a to valid CSV file with an initial header row"`
 	Server          string `help:"Server address"`
 	Database        string `help:"Database name"`
+	Username        string `help:"User name"`
+	Password        string `help:"Password"`
 	Measurement     string `help:"Measurement name"`
 	BatchSize       int    `help:"Batch insert size"`
 	TagColumns      string `help:"Comma-separated list of columns to use as tags instead of fields"`
@@ -37,6 +39,8 @@ func main() {
 	conf := config{
 		Server:          "http://localhost:8086",
 		Database:        "test",
+		Username:        "",
+		Password:        "",
 		Measurement:     "data",
 		BatchSize:       5000,
 		TimestampColumn: "timestamp",
@@ -76,12 +80,13 @@ func main() {
 	//if err != nil {
 	//	log.Fatalf("Invalid server address: %s", err)
 	//}
-	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server})
-
+	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server, Username: conf.Username, Password: conf.Password})
+	
 	dbsResp, err := c.Query(client.Query{Command: "SHOW DATABASES"})
 	if err != nil {
 		log.Fatalf("Invalid server address: %s", err)
 	}
+
 	dbExists := false
 	for _, v := range dbsResp.Results[0].Series[0].Values {
 		dbName := v[0].(string)
