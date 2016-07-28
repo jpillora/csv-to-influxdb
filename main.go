@@ -153,12 +153,19 @@ func main() {
 		if bpSize == 0 {
 			return
 		}
-		b := backoff.Backoff{}
+		b := backoff.Backoff{Max: 2 * time.Second}
+		prevD := time.Nanosecond
 		for {
 			if err := c.Write(bp); err != nil {
 				d := b.Duration()
+				if d == prevD {
+					if err != nil {
+           	        	log.Fatalf("failed to write to db")
+                   	}
+				}
 				log.Printf("Write failed: %s (retrying in %s)", err, d)
 				time.Sleep(d)
+				prevD = d
 				continue
 			}
 			break
