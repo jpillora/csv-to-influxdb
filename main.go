@@ -80,13 +80,16 @@ func main() {
 	//	log.Fatalf("Invalid server address: %s", err)
 	//}
 	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server, Username: conf.Username, Password: conf.Password})
-	
+
 	dbsResp, err := c.Query(client.Query{Command: "SHOW DATABASES"})
 	if err != nil {
 		log.Fatalf("Invalid server address: %s", err)
 	}
 
 	dbExists := false
+	if len(dbsResp.Results) == 0 {
+		log.Fatalf("No databases found, probably an authentication issue, please provide username and password.")
+	}
 	for _, v := range dbsResp.Results[0].Series[0].Values {
 		dbName := v[0].(string)
 		if conf.Database == dbName {
