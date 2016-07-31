@@ -5,7 +5,7 @@
 
 **Binaries**
 
-See [the latest release](https://github.com/jpillora/csv-to-influxdb/releases/latest)
+See [the latest release](https://github.com/jpillora/csv-to-influxdb/releases/latest) or download it now with `curl https://i.jpillora.com/csv-to-influxdb | bash`
 
 **Source**
 
@@ -42,17 +42,16 @@ $ csv-to-influxdb --help
   --version, -v
 
   Version:
-    0.0.0-src
+    0.1.2
 
   Read more:
     github.com/jpillora/csv-to-influxdb
-
 
 ```
 
 #### MIT License
 
-Copyright © 2015 &lt;dev@jpillora.com&gt;
+Copyright © 2016 &lt;dev@jpillora.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
