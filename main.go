@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-//	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -31,6 +30,7 @@ type config struct {
 	TimestampColumn string `short:"ts" help:"Header name of the column to use as the timestamp"`
 	TimestampFormat string `short:"tf" help:"Timestamp format used to parse all timestamp records"`
 	NoAutoCreate    bool   `help:"Disable automatic creation of database"`
+	Attempts        int    `help:"Maximum number of attempts to send data to influxdb before failing"`
 }
 
 func main() {
@@ -66,7 +66,6 @@ func main() {
 	//regular expressions
 	numbersRe := regexp.MustCompile(`\d`)
 	integerRe := regexp.MustCompile(`^\d+$`)
-//	floatRe := regexp.MustCompile(`^\d+\.\d+$`)
 	floatRe := regexp.MustCompile(`^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$`)
 	trueRe := regexp.MustCompile(`^(true|T|True|TRUE)$`)
 	falseRe := regexp.MustCompile(`^(false|F|False|FALSE)$`)
@@ -81,13 +80,16 @@ func main() {
 	//	log.Fatalf("Invalid server address: %s", err)
 	//}
 	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server, Username: conf.Username, Password: conf.Password})
-	
+
 	dbsResp, err := c.Query(client.Query{Command: "SHOW DATABASES"})
 	if err != nil {
 		log.Fatalf("Invalid server address: %s", err)
 	}
 
 	dbExists := false
+	if len(dbsResp.Results) == 0 {
+		log.Fatalf("No databases found, probably an authentication issue, please provide username and password.")
+	}
 	for _, v := range dbsResp.Results[0].Series[0].Values {
 		dbName := v[0].(string)
 		if conf.Database == dbName {
@@ -158,6 +160,9 @@ func main() {
 			if err := c.Write(bp); err != nil {
 				d := b.Duration()
 				log.Printf("Write failed: %s (retrying in %s)", err, d)
+				if int(b.Attempt()) == conf.Attempts {
+					log.Fatalf("Failed to write to db after %d attempts", int(b.Attempt()))
+				}
 				time.Sleep(d)
 				continue
 			}
