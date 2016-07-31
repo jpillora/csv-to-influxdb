@@ -25,6 +25,8 @@ $ csv-to-influxdb --help
   Options:
   --server, -s             Server address (default http://localhost:8086)
   --database, -d           Database name (default test)
+  --username, -u           User name
+  --password, -p           Password
   --measurement, -m        Measurement name (default data)
   --batch-size, -b         Batch insert size (default 5000)
   --tag-columns, -t        Comma-separated list of columns to use as tags
@@ -34,6 +36,8 @@ $ csv-to-influxdb --help
   --timestamp-format, -tf  Timestamp format used to parse all timestamp
                            records (default 2006-01-02 15:04:05)
   --no-auto-create, -n     Disable automatic creation of database
+  --attempts, -a           Maximum number of attempts to send data to
+                           influxdb before failing
   --help, -h
   --version, -v
 
