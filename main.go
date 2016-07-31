@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-//	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -31,6 +30,7 @@ type config struct {
 	TimestampColumn string `short:"ts" help:"Header name of the column to use as the timestamp"`
 	TimestampFormat string `short:"tf" help:"Timestamp format used to parse all timestamp records"`
 	NoAutoCreate    bool   `help:"Disable automatic creation of database"`
+	Attempts        int    `help:"Maximum number of attempts to send data to influxdb before failing"`
 }
 
 func main() {
@@ -66,7 +66,6 @@ func main() {
 	//regular expressions
 	numbersRe := regexp.MustCompile(`\d`)
 	integerRe := regexp.MustCompile(`^\d+$`)
-//	floatRe := regexp.MustCompile(`^\d+\.\d+$`)
 	floatRe := regexp.MustCompile(`^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$`)
 	trueRe := regexp.MustCompile(`^(true|T|True|TRUE)$`)
 	falseRe := regexp.MustCompile(`^(false|F|False|FALSE)$`)
@@ -153,19 +152,15 @@ func main() {
 		if bpSize == 0 {
 			return
 		}
-		b := backoff.Backoff{Max: 2 * time.Second}
-		prevD := time.Nanosecond
+		b := backoff.Backoff{}
 		for {
 			if err := c.Write(bp); err != nil {
 				d := b.Duration()
-				if d == prevD {
-					if err != nil {
-           	        	log.Fatalf("failed to write to db")
-                   	}
-				}
 				log.Printf("Write failed: %s (retrying in %s)", err, d)
+				if int(b.Attempt()) == conf.Attempts {
+					log.Fatalf("Failed to write to db after %d attempts", int(b.Attempt()))
+				}
 				time.Sleep(d)
-				prevD = d
 				continue
 			}
 			break
