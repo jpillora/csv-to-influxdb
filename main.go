@@ -30,6 +30,7 @@ type config struct {
 	TimestampColumn string `short:"ts" help:"Header name of the column to use as the timestamp"`
 	TimestampFormat string `short:"tf" help:"Timestamp format used to parse all timestamp records"`
 	NoAutoCreate    bool   `help:"Disable automatic creation of database"`
+	ForceFloat      bool   `help:"Force all numeric values to insert as float"`
 	Attempts        int    `help:"Maximum number of attempts to send data to influxdb before failing"`
 }
 
@@ -43,6 +44,7 @@ func main() {
 		Password:        "",
 		Measurement:     "data",
 		BatchSize:       5000,
+		ForceFloat:      false,
 		TimestampColumn: "timestamp",
 		TimestampFormat: "2006-01-02 15:04:05",
 	}
@@ -227,7 +229,7 @@ func main() {
 					continue
 				}
 				fields[h] = t
-			} else if integerRe.MatchString(r) {
+			} else if !conf.ForceFloat && integerRe.MatchString(r) {
 				i, _ := strconv.Atoi(r)
 				fields[h] = i
 			} else if floatRe.MatchString(r) {
