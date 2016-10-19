@@ -33,6 +33,7 @@ type config struct {
 	ForceFloat      bool   `help:"Force all numeric values to insert as float"`
 	ForceString     bool   `help:"Force all numeric values to insert as string"`
 	Attempts        int    `help:"Maximum number of attempts to send data to influxdb before failing"`
+	HttpTimeout	int    `help:"Timeout (in seconds) for http writes used by underlying influxdb client"`
 }
 
 func main() {
@@ -49,6 +50,7 @@ func main() {
 		ForceString:     false,
 		TimestampColumn: "timestamp",
 		TimestampFormat: "2006-01-02 15:04:05",
+		HttpTimeout:	 10,
 	}
 
 	//parse config
@@ -83,7 +85,7 @@ func main() {
 	//if err != nil {
 	//	log.Fatalf("Invalid server address: %s", err)
 	//}
-	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server, Username: conf.Username, Password: conf.Password})
+	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server, Username: conf.Username, Password: conf.Password, Timeout: time.Duration(conf.HttpTimeout) * time.Second})
 
 	dbsResp, err := c.Query(client.Query{Command: "SHOW DATABASES"})
 	if err != nil {
