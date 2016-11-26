@@ -32,6 +32,7 @@ type config struct {
 	NoAutoCreate    bool   `help:"Disable automatic creation of database"`
 	ForceFloat      bool   `help:"Force all numeric values to insert as float"`
 	ForceString     bool   `help:"Force all numeric values to insert as string"`
+	TreatNull	bool   `help:"Force treating "null" string values as such`
 	Attempts        int    `help:"Maximum number of attempts to send data to influxdb before failing"`
 	HttpTimeout	int    `help:"Timeout (in seconds) for http writes used by underlying influxdb client"`
 }
@@ -48,6 +49,7 @@ func main() {
 		BatchSize:       5000,
 		ForceFloat:      false,
 		ForceString:     false,
+		TreatNull:       false,
 		TimestampColumn: "timestamp",
 		TimestampFormat: "2006-01-02 15:04:05",
 		HttpTimeout:	 10,
@@ -75,6 +77,7 @@ func main() {
 	floatRe := regexp.MustCompile(`^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$`)
 	trueRe := regexp.MustCompile(`^(true|T|True|TRUE)$`)
 	falseRe := regexp.MustCompile(`^(false|F|False|FALSE)$`)
+	nullRe := regexp.MustCompile(`^(null|Null|NULL)$`)
 	timestampRe, err := regexp.Compile("^" + numbersRe.ReplaceAllString(conf.TimestampFormat, `\d`) + "$")
 	if err != nil {
 		log.Fatalf("time stamp regexp creation failed")
@@ -87,7 +90,7 @@ func main() {
 	//}
 	c, err := client.NewHTTPClient(client.HTTPConfig{Addr: conf.Server, Username: conf.Username, Password: conf.Password, Timeout: time.Duration(conf.HttpTimeout) * time.Second})
 	defer c.Close()
-	
+
 	dbsResp, err := c.Query(client.Query{Command: "SHOW DATABASES"})
 	if err != nil {
 		log.Fatalf("Invalid server address: %s", err)
@@ -244,6 +247,9 @@ func main() {
 				fields[h] = true
 			} else if falseRe.MatchString(r) {
 				fields[h] = false
+			} else if conf.TreatNull && nullRe.MatchString(r) {
+				// null values must not be inserted into InfluxDB
+				continue
 			} else {
 				fields[h] = r
 			}
