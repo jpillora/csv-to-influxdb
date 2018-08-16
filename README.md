@@ -35,6 +35,7 @@ $ csv-to-influxdb --help
                            (default timestamp)
   --timestamp-format, -tf  Timestamp format used to parse all timestamp
                            records (default 2006-01-02 15:04:05)
+                           Use 'unix' for parse values as unix timestamp
   --no-auto-create, -n     Disable automatic creation of database
   --treat-null             Force treating "null" string values as such
   --attempts, -a           Maximum number of attempts to send data to

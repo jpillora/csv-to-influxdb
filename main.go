@@ -28,13 +28,13 @@ type config struct {
 	BatchSize       int    `help:"Batch insert size"`
 	TagColumns      string `help:"Comma-separated list of columns to use as tags instead of fields"`
 	TimestampColumn string `short:"ts" help:"Header name of the column to use as the timestamp"`
-	TimestampFormat string `short:"tf" help:"Timestamp format used to parse all timestamp records"`
+	TimestampFormat string `short:"tf" help:"Timestamp format used to parse all timestamp records. Use 'unix' for parse values as unix timestamp"`
 	NoAutoCreate    bool   `help:"Disable automatic creation of database"`
 	ForceFloat      bool   `help:"Force all numeric values to insert as float"`
 	ForceString     bool   `help:"Force all numeric values to insert as string"`
-	TreatNull	bool   `help:"Force treating "null" string values as such`
+	TreatNull	    bool   `help:"Force treating 'null' string values as such"`
 	Attempts        int    `help:"Maximum number of attempts to send data to influxdb before failing"`
-	HttpTimeout	int    `help:"Timeout (in seconds) for http writes used by underlying influxdb client"`
+	HttpTimeout	    int    `help:"Timeout (in seconds) for http writes used by underlying influxdb client"`
 }
 
 func main() {
@@ -237,6 +237,10 @@ func main() {
 					continue
 				}
 				fields[h] = t
+			} else if conf.TimestampColumn == h && conf.TimestampFormat == "unix" {
+				tt, _ := strconv.Atoi(r)
+				ts = time.Unix(0, int64(tt))
+				continue
 			} else if !conf.ForceFloat && !conf.ForceString && integerRe.MatchString(r) {
 				i, _ := strconv.Atoi(r)
 				fields[h] = i
