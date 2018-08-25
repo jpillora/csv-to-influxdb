@@ -260,6 +260,10 @@ func main() {
 		}
 
 		p, err := client.NewPoint(conf.Measurement, tags, fields, ts)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 
 		bp.AddPoint(p)
 		bpSize++
